@@ -1,7 +1,5 @@
 # Student Attendance Tracking DAO on Hyperledger Fabric
 
-![Hyperledger Fabric Logo](https://www.hyperledger.org/hs-fs/hubfs/hlf_logo_hz_green.png?width=1885&height=334&name=hlf_logo_hz_green.png)
-
 ## Overview
 
 The Student Attendance Tracking DAO (Decentralized Autonomous Organization) on Hyperledger Fabric is a blockchain-based system for tracking student attendance. This project allows teachers to create attendance forms on the blockchain, students to submit their attendance, and administrators to view and manage attendance results.
