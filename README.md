@@ -1,6 +1,6 @@
 # Student Attendance Tracking DAO on Hyperledger Fabric
 
-![Hyperledger Fabric Logo](https://www.hyperledger.org/wp-content/uploads/2018/03/Hyperledger_Fabric_Logo_Color.png)
+![Hyperledger Fabric Logo](https://www.hyperledger.org/hs-fs/hubfs/hlf_logo_hz_green.png?width=1885&height=334&name=hlf_logo_hz_green.png)
 
 ## Overview
 
