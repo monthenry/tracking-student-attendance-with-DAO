@@ -1,69 +1,65 @@
-# Student Attendance Tracking DAO on Hyperledger Fabric
+# Ethereum Student Attendance Tracking DAO
 
 ## Overview
 
-The Student Attendance Tracking DAO (Decentralized Autonomous Organization) on Hyperledger Fabric is a blockchain-based system for tracking student attendance. This project allows teachers to create attendance forms on the blockchain, students to submit their attendance, and administrators to view and manage attendance results.
+The Ethereum Student Attendance Tracking DAO is a decentralized application (DApp) built on the Ethereum blockchain. It provides a secure and transparent way for teachers to create and track student attendance through smart contracts. The system ensures accuracy and reliability by leveraging Ethereum's blockchain technology.
 
 ## Features
 
-- **Teacher Interface:** Create and manage attendance forms.
-- **Student Interface:** Submit attendance for a specific form.
-- **Administration Interface:** View overall attendance and resolve disputes.
+- **Teacher Functionality:**
+  - Teachers can create and post attendance forms on the blockchain.
+  - Only teachers are authorized to create attendance forms.
 
-## Getting Started
+- **Student Functionality:**
+  - Students can answer attendance forms during the specified date and time.
+  - Absence is determined based on voting results and predefined rules.
 
-### Prerequisites
+- **Results Storage:**
+  - Final attendance results are securely stored on the Ethereum blockchain.
 
-1. Docker
-2. Docker Compose
-3. Go Programming Language
-4. Hyperledger Fabric Samples and Binaries
+- **Access Control:**
+  - Only authorized users (teachers, students, or administrators) can view attendance statistics.
 
-### Set Up Local Fabric Network
+## Smart Contract Structure
 
-1. Clone the Hyperledger Fabric Samples repository:
+The project uses Ethereum smart contracts written in Solidity. The primary components include:
+
+- **AttendanceForm Struct:**
+  - Stores details of each attendance form.
+  - Includes course name, teacher address, date, duration, students list, and votes list.
+
+- **AttendanceResult Struct:**
+  - Stores final attendance results.
+  - Includes course name, teacher address, date, duration, and final results list.
+
+- **Functions:**
+  - Teachers can create attendance forms.
+  - Students can answer attendance forms.
+  - Final results are calculated based on predefined rules.
+
+## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/ethereum-attendance-dao.git
+   ```
+
+2. Install dependencies:
 
     ```bash
-    git clone https://github.com/hyperledger/fabric-samples.git
-    cd fabric-samples
+    Copy code
+    cd ethereum-attendance-dao
+    npm install
+    Deploy the smart contract using Remix IDE or your preferred Ethereum development environment.
     ```
-
-2. Start the Fabric network:
-
-    ```bash
-    cd test-network
-    ./network.sh up createChannel -ca
-    ```
-
-3. Deploy the smart contract (chaincode):
-
-    ```bash
-    cd ../chaincode
-    ./network.sh deployCC -ccn attendance -ccp ../chaincode -ccl go
-    ```
-
-### Interact with the Network
-
-1. Run the sample applications:
-
-    ```bash
-    cd ../application
-    go run main.go
-    ```
-
-## Smart Contract (Chaincode)
-
-The smart contract (chaincode) is written in Go and defines the logic for opening and closing attendance, submitting attendance, calculating overall attendance, and retrieving results. Check the `chaincode/attendance_contract.go` file for details.
 
 ## Usage
 
-- Use the provided interfaces (teacher, student, administration) to interact with the attendance tracking system.
-- Teachers can create forms, students can submit attendance, and administrators can view and manage attendance results.
-
-## Contributing
-
-Contributions are welcome! If you find a bug or have suggestions for improvement, please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+Deploy the smart contract on the Ethereum blockchain.  
+  
+Interact with the DApp through the provided HTML pages:  
+* Teacher Page: Create and post attendance forms.
+* Student Page: Answer attendance forms.
+* Statistics Page: View attendance statistics.  
+Ensure MetaMask or another Ethereum wallet is connected to the DApp for transaction signing.
