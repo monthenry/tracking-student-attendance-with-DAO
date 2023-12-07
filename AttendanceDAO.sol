@@ -10,6 +10,7 @@ contract AttendanceDAO {
 
     // Struct to store attendance form details
     struct AttendanceForm {
+        bool isActive;
         string courseName;
         uint256 courseDate; // Datetime at which the form was created
         address teacher;
@@ -74,6 +75,7 @@ contract AttendanceDAO {
     ) external onlyTeachers returns (uint256) {
         // Create a new attendance form without initializing the inner list
         AttendanceForm memory newForm = AttendanceForm({
+            isActive: true,
             courseName: _courseName,
             courseDate: block.timestamp,
             teacher: msg.sender,
@@ -85,7 +87,7 @@ contract AttendanceDAO {
         attendanceForms.push(newForm);
 
         // Increment the number of forms
-        numForms += 1;
+        numForms++;
 
         return numForms-1;
     }
@@ -93,10 +95,11 @@ contract AttendanceDAO {
     // Function to calculate and store final attendance results
     function calculateAttendanceResult(uint256 _formIndex) external returns (uint256) {
         // Ensure the form index is valid
-        require(_formIndex < attendanceForms.length, "Invalid form index");
+        require(_formIndex < numForms, "Invalid form index");
 
         // Get the attendance form
         AttendanceForm storage form = attendanceForms[_formIndex];
+        uint256 numStudents = form.students.length;
 
         // Ensure the form can only be closed by the teacher opening it
         require(msg.sender == form.teacher, "The form can only be closed by it's creator");
@@ -107,12 +110,12 @@ contract AttendanceDAO {
             courseDate: form.courseDate,
             teacher: form.teacher,
             students: form.students,
-            finalResult: new bool[](form.students.length) // Initialize with the correct size
+            finalResult: new bool[](numStudents) // Initialize with the correct size
         });
 
-        uint256 numVotes = form.votes.length;
         // Calculate final results
-        for (uint256 i = 0; i < form.students.length; i++) {
+        uint256 numVotes = 0;
+        for (uint256 i = 0; i < numStudents; i++) {
             // Check if the student has voted, otherwise declared as absent
             if (form.votes[i].length <= 0) {
                 newResult.finalResult[i] = false;
@@ -121,14 +124,17 @@ contract AttendanceDAO {
             
             // Count votes
             uint256 presentCount;
-            for (uint256 j = 0; j < numVotes; j++) {
-                if (form.votes[j][i]) {
-                    presentCount++;
+            for (uint256 j = 0; j < numStudents; j++) {
+                if (form.votes[j].length > 0) {
+                    numVotes++;
+                    if (form.votes[j][i]) {
+                        presentCount++;
+                    }
                 }
             }
 
             // Check if the student is present based on the majority rules
-            if (presentCount >= (form.votes.length * 51) / 100) {
+            if (presentCount >= (numVotes * 51) / 100) {
                 newResult.finalResult[i] = true;
             } else {
                 newResult.finalResult[i] = false;
@@ -138,17 +144,10 @@ contract AttendanceDAO {
         // Add the form to the list of result forms
         attendanceResults.push(newResult);
         // Increment the number of forms
-        numResults += 1;
+        numResults++;
 
         // Delete the form from the list
-        delete attendanceForms[_formIndex];
-        // Fill the gap
-        for (uint256 i = _formIndex; i < attendanceForms.length - 1; i++) {
-            attendanceForms[i] = attendanceForms[i + 1];
-        }
-        // Rezise the array
-        attendanceForms.pop();
-        numForms -= 1;
+        form.isActive = false;
 
         return numResults - 1;
     }
@@ -180,6 +179,9 @@ contract AttendanceDAO {
 
         // Get the attendance form
         AttendanceForm storage form = attendanceForms[_formIndex];
+
+        // Check that the form is still active
+        require(form.isActive, "The form has already been closed");
 
         // Check if the sender is a valid student in the form
         require(isStudent(msg.sender, form.students), "You are not a valid student for this form");
