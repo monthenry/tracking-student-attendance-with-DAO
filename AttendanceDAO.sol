@@ -57,8 +57,10 @@ contract AttendanceDAO {
 
     // Constructor to set the owner
     constructor() {
+        numForms = 0;
+        numResults = 0;
         owner = msg.sender;
-        addTeacher(0x59Ede2165427c69d778D110C7f0cdf55418b4804);
+        addTeacher(msg.sender);
     }
 
     /*
@@ -76,20 +78,20 @@ contract AttendanceDAO {
             courseDate: block.timestamp,
             teacher: msg.sender,
             students: _students,
-            votes: new bool[][](0)
+            votes: new bool[][](_students.length) 
         });
-
-        // Get the index at which the form will be inserted
-        uint256 formIndex = attendanceForms.length;
 
         // Add the form to the list of attendance forms
         attendanceForms.push(newForm);
 
-        return formIndex;
+        // Increment the number of forms
+        numForms += 1;
+
+        return numForms-1;
     }
 
     // Function to calculate and store final attendance results
-    function calculateAttendanceResult(uint256 _formIndex) external {
+    function calculateAttendanceResult(uint256 _formIndex) external returns (uint256) {
         // Ensure the form index is valid
         require(_formIndex < attendanceForms.length, "Invalid form index");
 
@@ -100,32 +102,41 @@ contract AttendanceDAO {
             courseDate: form.courseDate,
             teacher: form.teacher,
             students: form.students,
-            finalResult: new bool[](0)
+            finalResult: new bool[](form.students.length) // Initialize with the correct size
         });
 
+        uint256 numVotes = form.votes.length;
         // Calculate final results
         for (uint256 i = 0; i < form.students.length; i++) {
-            uint256 presentCount;
-            uint256 absentCount;
-
+            // Check if the student has voted, otherwise declared as absent
+            if (form.votes[i].length <= 0) {
+                newResult.finalResult[i] = false;
+                continue;
+            }
+            
             // Count votes
-            for (uint256 j = 0; j < form.votes.length; j++) {
+            uint256 presentCount;
+            for (uint256 j = 0; j < numVotes; j++) {
                 if (form.votes[j][i]) {
                     presentCount++;
-                } else {
-                    absentCount++;
                 }
             }
 
-            // Check if the student is present based on the rules
-            if (presentCount >= form.votes.length * 75 / 100) {
+            // Check if the student is present based on the majority rules
+            if (presentCount >= (form.votes.length * 51) / 100) {
                 newResult.finalResult[i] = true;
-            } else if (absentCount > form.votes.length * 5 / 100) {
+            } else {
                 newResult.finalResult[i] = false;
             }
         }
 
+        // Add the form to the list of result forms
         attendanceResults.push(newResult);
+
+        // Increment the number of forms
+        numResults += 1;
+
+        return numResults - 1;
     }
 
     // Helper function to check if an address is a teacher
@@ -151,38 +162,82 @@ contract AttendanceDAO {
     // Function for students to answer the attendance form
     function answerAttendanceForm(uint256 _formIndex, bool[] memory _isPresent) external {
         // Ensure the form index is valid
-        require(_formIndex < attendanceForms.length, "Invalid form index");
+        require(_formIndex < numForms, "Invalid form index");
 
         // Get the attendance form
         AttendanceForm storage form = attendanceForms[_formIndex];
 
+        // Check if the sender is a valid student in the form
+        require(isStudent(msg.sender, form.students), "You are not a valid student for this form");
+
         // Check if the number of provided answers matches the number of students
         require(_isPresent.length == form.students.length, "Invalid number of answers");
 
-        // Add the student's vote
-        form.votes.push(_isPresent);
+        // Find the index of the student in the form
+        uint256 studentIndex;
+        for (uint256 i = 0; i < form.students.length; i++) {
+            if (form.students[i] == msg.sender) {
+                studentIndex = i;
+                break;
+            }
+        }
+
+        // Check if the student has not voted already
+        require(!(form.votes[studentIndex].length > 0), "You have already voted for this form");
+
+        // Add the student's vote at the right index
+        form.votes[studentIndex] = _isPresent;
     }
 
-    // Function to view attendance statistics
-    function viewAttendanceStatistics(uint256 _resultIndex, address _viewer) external view returns (bool[] memory) {
-        // Ensure the form index is valid
-        require(_resultIndex < attendanceResults.length, "Invalid form index");
+    // Function to get attendance forms by student
+    function getAttendanceFormsByStudent(address _student) external view returns (AttendanceForm[] memory) {
+        AttendanceForm[] memory studentForms = new AttendanceForm[](numForms);
 
-        // Get the attendance form
-        AttendanceResult storage result = attendanceResults[_resultIndex];
+        uint256 count = 0;
+        for (uint256 i = 0; i < numForms; i++) {
+            if (isStudent(_student, attendanceForms[i].students)) {
+                // Student is part of the form, add it to the result array
+                studentForms[count] = attendanceForms[i];
+                count++;
+            }
+        }
 
-        // Only the teacher, students of that class, or members of the administration can view statistics
-        require(
-            isTeacher(_viewer) || isStudent(_viewer, result.students),
-            "You don't have permission to view statistics"
-        );
+        // Resize the memory array to fit only the relevant forms
+        assembly {
+            mstore(studentForms, count)
+        }
 
-        // Return the final results
-        return result.finalResult;
+        return studentForms;
+    }
+
+    // Function to get attendance forms by teacher
+    function getAttendanceFormsByTeacher(address _teacher) external view returns (AttendanceForm[] memory) {
+        AttendanceForm[] memory teacherForms = new AttendanceForm[](numForms);
+
+        uint256 count = 0;
+        for (uint256 i = 0; i < numForms; i++) {
+            if (attendanceForms[i].teacher == _teacher) {
+                // Teacher matches, add the form to the result array
+                teacherForms[count] = attendanceForms[i];
+                count++;
+            }
+        }
+
+        // Resize the memory array to fit only the relevant forms
+        assembly {
+            mstore(teacherForms, count)
+        }
+
+        return teacherForms;
     }
 
     // Function to display all attendance forms
     function getAllAttendanceForms() external view returns (AttendanceForm[] memory) {
         return attendanceForms;
+    }
+
+    // Function to display all attendance results
+    function getAllAttendanceResults() external view returns (AttendanceResult[] memory) {
+        return attendanceResults;
     }
 }
