@@ -1,5 +1,5 @@
 // Config contract information
-const contractAddress = "0x182438429BbF1563b2e3D958ac7447AB6d1ffF7d";
+const contractAddress = "0x12d653FdfB680E7AD26742B30a20404F319f1faF";
 const contractABI = [
 	{
 		"inputs": [
@@ -91,6 +91,11 @@ const contractABI = [
 		"name": "attendanceForms",
 		"outputs": [
 			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			},
+			{
 				"internalType": "string",
 				"name": "courseName",
 				"type": "string"
@@ -144,6 +149,11 @@ const contractABI = [
 		"outputs": [
 			{
 				"components": [
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
 					{
 						"internalType": "string",
 						"name": "courseName",
@@ -231,6 +241,11 @@ const contractABI = [
 			{
 				"components": [
 					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
+					{
 						"internalType": "string",
 						"name": "courseName",
 						"type": "string"
@@ -276,6 +291,11 @@ const contractABI = [
 		"outputs": [
 			{
 				"components": [
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
 					{
 						"internalType": "string",
 						"name": "courseName",
@@ -358,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         web3  = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8545/")); //for events
     }
-    web3.eth.defaultAccount = "0xbAECA95CE716F9288725c06Ea4CDf4F0Dd63d7f6";
+    // web3.eth.defaultAccount = "0xB1882a7bCa34bE9F4d83c942B2CB5b6cBf9C44a3";
 
     // Display current wallet address
     document.getElementById('walletAddress').innerText = web3.eth.defaultAccount;
@@ -424,7 +444,7 @@ async function createNewForm() {
     }
 
     const accounts = await web3.eth.getAccounts();
-    await contract.methods.createAttendanceForm(courseName, students).send({ from: accounts[0] });
+    await contract.methods.createAttendanceForm(courseName, students).send({ from: accounts[0], gas: 2000000 });
 
     // Reload teacher's forms after creating a new one
     loadTeacherForms();
@@ -440,7 +460,7 @@ async function calculateAttendanceResult() {
         const teacherForms = await contract.methods.getAttendanceFormsByTeacher(accounts[0]).call();
         const selectedForm = teacherForms[selectedIndex];
 
-        await contract.methods.calculateAttendanceResult(selectedIndex).send({ from: accounts[0] });
+        await contract.methods.calculateAttendanceResult(selectedIndex).send({ from: accounts[0], gas: 2000000 });
 
         // Reload teacher's forms after closing the form
         loadTeacherForms();

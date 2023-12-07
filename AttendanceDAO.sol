@@ -232,7 +232,7 @@ contract AttendanceDAO {
 
         uint256 count = 0;
         for (uint256 i = 0; i < numForms; i++) {
-            if (attendanceForms[i].teacher == _teacher) {
+            if (attendanceForms[i].teacher == _teacher && attendanceForms[i].isActive) {
                 // Teacher matches, add the form to the result array
                 teacherForms[count] = attendanceForms[i];
                 count++;
