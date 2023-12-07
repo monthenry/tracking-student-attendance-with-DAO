@@ -97,6 +97,11 @@ contract AttendanceDAO {
 
         // Get the attendance form
         AttendanceForm storage form = attendanceForms[_formIndex];
+
+        // Ensure the form can only be closed by the teacher opening it
+        require(msg.sender == form.teacher, "The form can only be closed by it's creator");
+
+        // Create a new attendanceResult
         AttendanceResult memory newResult = AttendanceResult({
             courseName: form.courseName,
             courseDate: form.courseDate,
@@ -132,9 +137,18 @@ contract AttendanceDAO {
 
         // Add the form to the list of result forms
         attendanceResults.push(newResult);
-
         // Increment the number of forms
         numResults += 1;
+
+        // Delete the form from the list
+        delete attendanceForms[_formIndex];
+        // Fill the gap
+        for (uint256 i = _formIndex; i < attendanceForms.length - 1; i++) {
+            attendanceForms[i] = attendanceForms[i + 1];
+        }
+        // Rezise the array
+        attendanceForms.pop();
+        numForms -= 1;
 
         return numResults - 1;
     }
