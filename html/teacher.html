@@ -3,31 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Page</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.6/dist/web3.min.js"></script>
+    <title>Attendance DAO - Teacher Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="../js/trackingAttendance.js"></script>
 </head>
 <body>
-    <h1>Teacher Page</h1>
+    <h1>Teacher Dashboard</h1>
 
-    <h2>Add Attendance Form</h2>
-    <label for="date">Date:</label>
-    <input type="text" id="date" placeholder="Enter date">
+    <div>
+        <p>Current Wallet Address: <span id="walletAddress"></span></p>
+    </div>
 
-    <label for="hour">Hour:</label>
-    <input type="text" id="hour" placeholder="Enter hour">
+    <!-- Create New Form Section -->
+    <h2>Create New Form</h2>
+    <label for="courseName">Course Name:</label>
+    <input type="text" id="courseName" placeholder="Enter course name">
+    <label for="students">Students (comma-separated addresses):</label>
+    <input type="text" id="students" placeholder="Enter students' addresses">
+    <button onclick="createNewForm()">Create Form</button>
 
-    <label for="duration">Duration:</label>
-    <input type="text" id="duration" placeholder="Enter duration">
+    <!-- View and Close Forms Section -->
+    <h2>View and Close Forms</h2>
+    <select id="formSelect" onchange="displayFormDetails()">
+        <!-- Options will be dynamically added using JavaScript -->
+    </select>
+    <button onclick="calculateAttendanceResult()">Close Form</button>
 
-    <label for="studentList">Student List (comma-separated):</label>
-    <input type="text" id="studentList" placeholder="Enter student list">
-
-    <button onclick="addAttendanceForm()">Add Attendance Form</button>
-
-    <h2>Attendance Forms</h2>
-    <div id="formsList"></div>
-    
-    <button onclick="getAllAttendanceForms()">Get All Attendance Forms</button>
+    <!-- Display Form Details Section -->
+    <h3>Form Details</h3>
+    <div id="formDetails"></div>
 </body>
 </html>

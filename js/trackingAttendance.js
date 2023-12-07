@@ -1,323 +1,448 @@
 // Config contract information
-const contractAddress = "0x42AD02eE8Ef7e0B3F321bABf01033328f558bDec";
+const contractAddress = "0x182438429BbF1563b2e3D958ac7447AB6d1ffF7d";
 const contractABI = [
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "teacher",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "duration",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "address[]",
-                "name": "studentList",
-                "type": "address[]"
-            }
-        ],
-        "name": "AttendanceFormCreated",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "student",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "bool",
-                "name": "isPresent",
-                "type": "bool"
-            }
-        ],
-        "name": "AttendanceMarked",
-        "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "duration",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address[]",
-                "name": "studentList",
-                "type": "address[]"
-            }
-        ],
-        "name": "createAttendanceForm",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bool",
-                "name": "isPresent",
-                "type": "bool"
-            }
-        ],
-        "name": "markAttendance",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "attendanceForms",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "duration",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "attendanceRecords",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "isPresent",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getAllAttendances",
-        "outputs": [
-            {
-                "internalType": "bool[]",
-                "name": "",
-                "type": "bool[]"
-            },
-            {
-                "internalType": "address[]",
-                "name": "",
-                "type": "address[]"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "",
-                "type": "uint256[]"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "",
-                "type": "uint256[]"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "date",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "hour",
-                "type": "uint256"
-            }
-        ],
-        "name": "getAttendanceStatistics",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "present",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "absent",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    }];
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_teacher",
+				"type": "address"
+			}
+		],
+		"name": "addTeacher",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_formIndex",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool[]",
+				"name": "_isPresent",
+				"type": "bool[]"
+			}
+		],
+		"name": "answerAttendanceForm",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_formIndex",
+				"type": "uint256"
+			}
+		],
+		"name": "calculateAttendanceResult",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_courseName",
+				"type": "string"
+			},
+			{
+				"internalType": "address[]",
+				"name": "_students",
+				"type": "address[]"
+			}
+		],
+		"name": "createAttendanceForm",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "attendanceForms",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "courseName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "courseDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "teacher",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "attendanceResults",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "courseName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "courseDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "teacher",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllAttendanceForms",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "courseName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "courseDate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "teacher",
+						"type": "address"
+					},
+					{
+						"internalType": "address[]",
+						"name": "students",
+						"type": "address[]"
+					},
+					{
+						"internalType": "bool[][]",
+						"name": "votes",
+						"type": "bool[][]"
+					}
+				],
+				"internalType": "struct AttendanceDAO.AttendanceForm[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllAttendanceResults",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "courseName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "courseDate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "teacher",
+						"type": "address"
+					},
+					{
+						"internalType": "address[]",
+						"name": "students",
+						"type": "address[]"
+					},
+					{
+						"internalType": "bool[]",
+						"name": "finalResult",
+						"type": "bool[]"
+					}
+				],
+				"internalType": "struct AttendanceDAO.AttendanceResult[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_student",
+				"type": "address"
+			}
+		],
+		"name": "getAttendanceFormsByStudent",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "courseName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "courseDate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "teacher",
+						"type": "address"
+					},
+					{
+						"internalType": "address[]",
+						"name": "students",
+						"type": "address[]"
+					},
+					{
+						"internalType": "bool[][]",
+						"name": "votes",
+						"type": "bool[][]"
+					}
+				],
+				"internalType": "struct AttendanceDAO.AttendanceForm[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_teacher",
+				"type": "address"
+			}
+		],
+		"name": "getAttendanceFormsByTeacher",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "courseName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "courseDate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "teacher",
+						"type": "address"
+					},
+					{
+						"internalType": "address[]",
+						"name": "students",
+						"type": "address[]"
+					},
+					{
+						"internalType": "bool[][]",
+						"name": "votes",
+						"type": "bool[][]"
+					}
+				],
+				"internalType": "struct AttendanceDAO.AttendanceForm[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "teachers",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
 
-// Connect to your smart contract
-// Initialize web3
-if (typeof web3 !== 'undefined') {
-    web3 = new Web3(Ganache.provider());
-    // console.log
-} else {
-    web3  = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8545/")); //for events
-}
-const contract = new web3.eth.Contract(contractABI, contractAddress);
-web3.eth.defaultAccount = "0x023dA9d7B7638ec4bb0c9C253F45a7507C623D8d";
+/*
+------------------------------CODE TO TEST-------------------------------------------
+*/
 
-function addAttendanceForm() {
-    // Get form input values
-    const date = document.getElementById("date").value;
-    const hour = document.getElementById("hour").value;
-    const duration = document.getElementById("duration").value;
-    const studentList = document.getElementById("studentList").value.split(',');
-
-    // Call smart contract function to add attendance form
-    contract.methods.createAttendanceForm(date, hour, duration, studentList)
-        .send({ from: web3.eth.defaultAccount })
-        .then(receipt => {
-            console.log("Transaction Receipt:", receipt);
-            alert("Attendance form added successfully!");
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error adding attendance form. Please check the console for details.");
-        });
-}
-
-async function fetchAndDisplayForms() {
-    // Call smart contract function to get all forms
-    const forms = await contract.methods.getAllForms().call({ from: web3.eth.defaultAccount });
-
-    // Display forms on the page
-    const formsListDiv = document.getElementById("formsList");
-    forms.forEach(form => {
-        const formDiv = document.createElement("div");
-        formDiv.innerHTML = `
-            <p><strong>Date:</strong> ${form.date}</p>
-            <p><strong>Hour:</strong> ${form.hour}</p>
-            <p><strong>Duration:</strong> ${form.duration} hours</p>
-            <p><strong>Student List:</strong> ${form.studentList.join(', ')}</p>
-            <hr>
-        `;
-        formsListDiv.appendChild(formDiv);
-    });
-}
-
-// Function to get all attendance forms
-async function getAllAttendanceForms() {
-    try {
-        // Call the function on the smart contract
-        const result = await contract.methods.getAllAttendances().call();
-
-        // Display the result
-        displayAttendanceForms(result);
-    } catch (error) {
-        console.error("Error getting attendance forms:", error);
+var contract = null;
+document.addEventListener('DOMContentLoaded', async () => {
+    // Connect to your smart contract
+    // Initialize web3
+    if (typeof web3 !== 'undefined') {
+        web3 = new Web3(Ganache.provider());
+        // console.log
+    } else {
+        web3  = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8545/")); //for events
     }
+    web3.eth.defaultAccount = "0xbAECA95CE716F9288725c06Ea4CDf4F0Dd63d7f6";
+
+    // Display current wallet address
+    document.getElementById('walletAddress').innerText = web3.eth.defaultAccount;
+
+    contract = new web3.eth.Contract(contractABI, contractAddress);
+    
+    // Load teacher's forms on page load
+    loadTeacherForms();
+});
+
+// Function to load teacher's forms into the dropdown
+async function loadTeacherForms() {
+    const accounts = await web3.eth.getAccounts();
+    const teacherForms = await contract.methods.getAttendanceFormsByTeacher(accounts[0]).call();
+    const formSelect = document.getElementById('formSelect');
+
+    // Clear previous options
+    formSelect.innerHTML = '<option value="" selected disabled hidden>Select a form</option>';
+
+    // Add new options
+    teacherForms.forEach((form, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.text = `${form.courseName} - ${new Date(form.courseDate * 1000).toLocaleString()}`;
+        formSelect.add(option);
+    });
+
+    // Display details of the selected form
+    displayFormDetails();
 }
 
-// Function to display attendance forms
-function displayAttendanceForms(result) {
-    const formsListDiv = document.getElementById('formsList');
+// Function to display details of the selected form
+async function displayFormDetails() {
+    const formSelect = document.getElementById('formSelect');
+    const selectedIndex = formSelect.value;
+    const formDetailsDiv = document.getElementById('formDetails');
     
-    // Assuming the result contains arrays of isPresent, student, date, and hour
-    const isPresentArray = result[0];
-    const studentArray = result[1];
-    const dateArray = result[2];
-    const hourArray = result[3];
+    if (selectedIndex) {
+        const accounts = await web3.eth.getAccounts();
+        const teacherForms = await contract.methods.getAttendanceFormsByTeacher(accounts[0]).call();
+        const selectedForm = teacherForms[selectedIndex];
 
-    for (let i = 0; i < isPresentArray.length; i++) {
-        const formDiv = document.createElement('div');
-        formDiv.innerHTML = `
-            <p>Student: ${studentArray[i]}</p>
-            <p>Date: ${dateArray[i]}</p>
-            <p>Hour: ${hourArray[i]}</p>
-            <p>Is Present: ${isPresentArray[i]}</p>
-            <hr>
+        // Display form details
+        formDetailsDiv.innerHTML = `
+            <p><strong>Course Name:</strong> ${selectedForm.courseName}</p>
+            <p><strong>Course Date:</strong> ${new Date(selectedForm.courseDate * 1000).toLocaleString()}</p>
+            <p><strong>Students:</strong> ${selectedForm.students.join(', ')}</p>
         `;
-        formsListDiv.appendChild(formDiv);
+    } else {
+        formDetailsDiv.innerHTML = ''; // Clear details if no form is selected
+    }
+    
+}
+
+// Function to create a new form
+async function createNewForm() {
+    const courseName = document.getElementById('courseName').value;
+    const students = document.getElementById('students').value.split(',').map(addr => addr.trim());
+
+    if (!courseName || students.length === 0) {
+        alert('Please enter valid course name and students');
+        return;
+    }
+
+    const accounts = await web3.eth.getAccounts();
+    await contract.methods.createAttendanceForm(courseName, students).send({ from: accounts[0] });
+
+    // Reload teacher's forms after creating a new one
+    loadTeacherForms();
+}
+
+// Function to close the selected form by calculating attendance result
+async function calculateAttendanceResult() {
+    const formSelect = document.getElementById('formSelect');
+    const selectedIndex = formSelect.value;
+
+    if (selectedIndex >= 0) {
+        const accounts = await web3.eth.getAccounts();
+        const teacherForms = await contract.methods.getAttendanceFormsByTeacher(accounts[0]).call();
+        const selectedForm = teacherForms[selectedIndex];
+
+        await contract.methods.calculateAttendanceResult(selectedIndex).send({ from: accounts[0] });
+
+        // Reload teacher's forms after closing the form
+        loadTeacherForms();
     }
 }
