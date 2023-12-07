@@ -2,13 +2,17 @@
 pragma solidity ^0.8.0;
 
 contract AttendanceDAO {
+    // Owner of the contract
+    address public immutable owner;
+
+    // List of teacher addresses
+    address[] public teachers;
 
     // Struct to store attendance form details
     struct AttendanceForm {
         string courseName;
+        uint256 courseDate; // Datetime at which the form was created
         address teacher;
-        uint256 datetime;
-        uint256 duration; // Duration in hours
         address[] students; // List of students for the form
         bool[][] votes; // List of lists containing booleans to store students' votes
     }
@@ -16,9 +20,8 @@ contract AttendanceDAO {
     // Struct to store final attendance results
     struct AttendanceResult {
         string courseName;
+        uint256 courseDate; // Datetime at which the form was created
         address teacher;
-        uint256 datetime;
-        uint256 duration; // Duration in hours
         address[] students; // List of students for the form
         bool[] finalResult; // List of lists containing booleans to store students' votes
     }
@@ -31,8 +34,32 @@ contract AttendanceDAO {
     uint numResults;
     AttendanceResult[] public attendanceResults;
 
-    // List of teacher addresses
-    address[] public teachers;
+    /*
+    ----------------------CONSTRUCTOR--------------------------------------------------------------
+    */
+
+    // Modifier to restrict access to the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the contract owner can perform this action");
+        _;
+    }
+
+    // Modifier to restrict access to teachers
+    modifier onlyTeachers() {
+        require(isTeacher(msg.sender), "Only teachers can perform this action");
+        _;
+    }
+
+    // Function to add a teacher address (can only be called by the owner)
+    function addTeacher(address _teacher) public onlyOwner {
+        teachers.push(_teacher);
+    }
+
+    // Constructor to set the owner
+    constructor() {
+        owner = msg.sender;
+        addTeacher(0x59Ede2165427c69d778D110C7f0cdf55418b4804);
+    }
 
     /*
     ----------------------CODE TO TEST--------------------------------------------------------------
@@ -41,25 +68,24 @@ contract AttendanceDAO {
     // Function for teachers to create and post an attendance form
     function createAttendanceForm(
         string memory _courseName,
-        uint256 _datetime,
-        uint256 _duration,
         address[] memory _students
-    ) external {
-        // Only teachers can create attendance forms
-        require(isTeacher(msg.sender), "Only teachers can create attendance forms");
-
+    ) external onlyTeachers returns (uint256) {
         // Create a new attendance form without initializing the inner list
         AttendanceForm memory newForm = AttendanceForm({
             courseName: _courseName,
+            courseDate: block.timestamp,
             teacher: msg.sender,
-            datetime: _datetime,
-            duration: _duration,
             students: _students,
             votes: new bool[][](0)
         });
 
+        // Get the index at which the form will be inserted
+        uint256 formIndex = attendanceForms.length;
+
         // Add the form to the list of attendance forms
         attendanceForms.push(newForm);
+
+        return formIndex;
     }
 
     // Function to calculate and store final attendance results
@@ -71,9 +97,8 @@ contract AttendanceDAO {
         AttendanceForm storage form = attendanceForms[_formIndex];
         AttendanceResult memory newResult = AttendanceResult({
             courseName: form.courseName,
+            courseDate: form.courseDate,
             teacher: form.teacher,
-            datetime: form.datetime,
-            duration: form.duration,
             students: form.students,
             finalResult: new bool[](0)
         });
@@ -131,9 +156,6 @@ contract AttendanceDAO {
         // Get the attendance form
         AttendanceForm storage form = attendanceForms[_formIndex];
 
-        // Ensure the current time is within the form's duration
-        require(block.timestamp >= form.datetime && block.timestamp <= form.datetime + form.duration * 1 hours, "Attendance form not active");
-
         // Check if the number of provided answers matches the number of students
         require(_isPresent.length == form.students.length, "Invalid number of answers");
 
@@ -157,5 +179,10 @@ contract AttendanceDAO {
 
         // Return the final results
         return result.finalResult;
+    }
+
+    // Function to display all attendance forms
+    function getAllAttendanceForms() external view returns (AttendanceForm[] memory) {
+        return attendanceForms;
     }
 }
