@@ -8,14 +8,18 @@ contract AttendanceDAO {
     // List of teacher addresses
     address[] public teachers;
 
+    // List of courses addresses
+    string[] public courses;
+
     // Struct to store attendance form details
     struct AttendanceForm {
+        uint256 index;  // Store the original index
         bool isActive;
         string courseName;
-        uint256 courseDate; // Datetime at which the form was created
+        uint256 courseDate;
         address teacher;
-        address[] students; // List of students for the form
-        bool[][] votes; // List of lists containing booleans to store students' votes
+        address[] students;
+        bool[][] votes;
     }
 
     // Struct to store final attendance results
@@ -51,11 +55,6 @@ contract AttendanceDAO {
         _;
     }
 
-    // Function to add a teacher address (can only be called by the owner)
-    function addTeacher(address _teacher) public onlyOwner {
-        teachers.push(_teacher);
-    }
-
     // Constructor to set the owner
     constructor() {
         numForms = 0;
@@ -68,6 +67,32 @@ contract AttendanceDAO {
     ----------------------CODE TO TEST--------------------------------------------------------------
     */
 
+    // Function to add a teacher address (can only be called by the owner)
+    function addTeacher(address _teacher) public onlyOwner {
+        teachers.push(_teacher);
+    }
+
+    // Function to add a course (can only be called by teachers)
+    function addCourse(string memory _course) public onlyTeachers {
+        require(!courseExists(_course));
+        courses.push(_course);
+    }
+
+    // Function to get the list of all courses
+    function getAllCourses() external view returns (string[] memory) {
+        return courses;
+    }
+
+    // Helper function to check if a course name exists
+    function courseExists(string memory _courseName) internal view returns (bool) {
+        for (uint256 i = 0; i < courses.length; i++) {
+            if (keccak256(abi.encodePacked(courses[i])) == keccak256(abi.encodePacked(_courseName))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Function for teachers to create and post an attendance form
     function createAttendanceForm(
         string memory _courseName,
@@ -75,6 +100,7 @@ contract AttendanceDAO {
     ) external onlyTeachers returns (uint256) {
         // Create a new attendance form without initializing the inner list
         AttendanceForm memory newForm = AttendanceForm({
+            index: numForms,
             isActive: true,
             courseName: _courseName,
             courseDate: block.timestamp,
@@ -205,14 +231,29 @@ contract AttendanceDAO {
         form.votes[studentIndex] = _isPresent;
     }
 
+    // Helper function to check if the student has voted for a specific form
+    function hasVoted(address _student, uint256 _formIndex) internal view returns (bool) {
+        AttendanceForm storage form = attendanceForms[_formIndex];
+
+        for (uint256 j = 0; j < form.students.length; j++) {
+            if (form.students[j] == _student && form.votes[j].length > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Function to get attendance forms by student
     function getAttendanceFormsByStudent(address _student) external view returns (AttendanceForm[] memory) {
         AttendanceForm[] memory studentForms = new AttendanceForm[](numForms);
 
         uint256 count = 0;
         for (uint256 i = 0; i < numForms; i++) {
-            if (isStudent(_student, attendanceForms[i].students)) {
-                // Student is part of the form, add it to the result array
+            // Check if the student is part of the form, the form is active, and the student hasn't voted
+            if (isStudent(_student, attendanceForms[i].students) && attendanceForms[i].isActive && !hasVoted(_student, i)) {
+                // Student is part of the form, the form is active, and the student hasn't voted,
+                // add it to the result array
                 studentForms[count] = attendanceForms[i];
                 count++;
             }
@@ -246,6 +287,29 @@ contract AttendanceDAO {
 
         return teacherForms;
     }
+
+    // Function to get attendance results by course
+    function getAttendanceResultsByCourse(string memory _courseName) external view returns (AttendanceResult[] memory) {
+        uint256 totalResults;
+        for (uint256 i = 0; i < numResults; i++) {
+            if (keccak256(abi.encodePacked(attendanceResults[i].courseName)) == keccak256(abi.encodePacked(_courseName))) {
+                totalResults++;
+            }
+        }
+
+        AttendanceResult[] memory resultsByCourse = new AttendanceResult[](totalResults);
+        uint256 currentIndex = 0;
+
+        for (uint256 i = 0; i < numResults; i++) {
+            if (keccak256(abi.encodePacked(attendanceResults[i].courseName)) == keccak256(abi.encodePacked(_courseName))) {
+                resultsByCourse[currentIndex] = attendanceResults[i];
+                currentIndex++;
+            }
+        }
+
+        return resultsByCourse;
+    }
+
 
     // Function to display all attendance forms
     function getAllAttendanceForms() external view returns (AttendanceForm[] memory) {

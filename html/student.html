@@ -3,16 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Page</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.6/dist/web3.min.js"></script>
-    <script src="../js/trackingAttendance.js"></script>
+    <title>Attendance DAO - Student Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="../js/studentDashboard.js"></script>
 </head>
 <body>
-    <h1>Student Page</h1>
+    <h1>Student Dashboard</h1>
 
-    <h2>View Attendance Forms</h2>
-    <div id="formsList"></div>
+    <div>
+        <p>Current Wallet Address: <span id="walletAddress"></span></p>
+    </div>
 
-    <button onclick="getStudentAttendance()">Get My Attendance</button>
+    <!-- Select Course Section -->
+    <h2>Select Course</h2>
+    <select id="courseSelect" onchange="displayStudentAttendance()">
+        <!-- Options will be dynamically added using JavaScript -->
+    </select>
+
+    <!-- Display Student Attendance Section -->
+    <h2>Student Attendance</h2>
+    <table id="studentAttendanceTable">
+        <!-- Table content will be dynamically added using JavaScript -->
+    </table>
+
+    <!-- Select Form Section -->
+    <h2>Select Form to Answer</h2>
+    <select id="formSelect" onchange="displayFormDetails()">
+        <!-- Options will be dynamically added using JavaScript -->
+    </select>
+
+    <!-- Display Form Details Section -->
+    <h3>Form Details</h3>
+    <div id="formDetails"></div>
+    <div id="studentChecklist"></div>
+    <div id="submitFormButton"></div>
 </body>
 </html>
