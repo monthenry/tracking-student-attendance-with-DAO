@@ -179,7 +179,7 @@ contract AttendanceDAO {
     }
 
     // Helper function to check if an address is a teacher
-    function isTeacher(address _address) internal view returns (bool) {
+    function isTeacher(address _address) public view returns (bool) {
         for (uint256 i = 0; i < teachers.length; i++) {
             if (_address == teachers[i]) {
                 return true;
