@@ -1,5 +1,5 @@
 // Config contract information
-const contractAddress = "0x9F890b4D5fcAbacB455e3aE110944aa25D773D14";
+const contractAddress = "0x3047d4d4577780bC3A2440be066065014E4D0c63";
 const contractABI = [
 	{
 		"inputs": [],
@@ -442,6 +442,25 @@ const contractABI = [
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "isTeacher",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "owner",
 		"outputs": [
@@ -475,23 +494,21 @@ const contractABI = [
 	}
 ];
 
-/*
-------------------------------CODE TO TEST-------------------------------------------
-*/
+/*------------------------------------- CODE ----------------------------*/
 
 var contract = null;
 var accounts = null;
 var accountId = null;
 var currentAccount = null;
+var isTeacher = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-	getLoginInformation();
-
+    getLoginInformation();
+    
     // Connect to your smart contract
     // Initialize web3
     if (typeof web3 !== 'undefined') {
         web3 = new Web3(Ganache.provider());
-        // console.log
     } else {
         web3  = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8545/")); //for events
     }
@@ -500,63 +517,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     contract = new web3.eth.Contract(contractABI, contractAddress);
 
 	accounts = await web3.eth.getAccounts();
-	currentAccount = accounts[0];
-
-	// Display current wallet address
-    document.getElementById('walletAddress').innerText = currentAccount;
+	currentAccount = accounts[accountId];
     
+    isTeacher = await checkIfTeacher(currentAccount);
+    if (isTeacher) {
+        generateTeacherPage();
+    } else {
+        generateStudentPage();
+    }
+
+    // Display current wallet address
+    document.getElementById('walletAddress').innerText = currentAccount;
+
     reloadElements();
 });
 
 document.addEventListener('visibilitychange', function() {
 	if (document.visibilityState === 'visible') {
-		reloadElements();
+        reloadElements();
 	}
 });
 
+/***********************LOGIC FUNCTION********************************/
+// Check if is teacher
+async function checkIfTeacher(address) {
+    var result = await contract.methods.isTeacher(address).call();
+
+    return result;
+}
+
 async function reloadElements() {
-	// Load courses on page load
-	loadCourses();
-
-	// Load forms for the student
-	loadFormsForStudent();
-}
-
-async function loadCourses() {
-    const courseSelect = document.getElementById('courseSelect');
-    courseSelect.innerHTML = '<option value="" selected disabled hidden>Select a course</option>'; // Clear previous entries
-
-    const courses = await contract.methods.getAllCourses().call();
-
-    // Add courses to the dropdown
-    for (const course of courses) {
-        const option = document.createElement('option');
-        option.value = course;
-        option.text = course;
-        courseSelect.appendChild(option);
-    }
-}
-
-// Function to load forms for the student
-async function loadFormsForStudent() {
-	const formDetails = document.getElementById('formDetails');
-	const studentChecklist = document.getElementById('studentChecklist');
-	const submitFormButton = document.getElementById('submitFormButton');
-	formDetails.innerHTML = '';
-	studentChecklist.innerHTML = '';
-	submitFormButton.innerHTML = '';
-
-    const formSelect = document.getElementById('formSelect');
-    formSelect.innerHTML = '<option value="" selected disabled hidden>Select a form</option>'; // Clear previous entries
-
-    const forms = await contract.methods.getAttendanceFormsByStudent(currentAccount).call();
-
-    // Add forms to the dropdown
-    for (const form of forms) {
-        const option = document.createElement('option');
-        option.value = form.index.toString();
-        option.text = `${form.courseName} - ${new Date(form.courseDate * 1000).toLocaleString()}`;
-        formSelect.appendChild(option);
+    if (currentAccount) {
+        if (isTeacher) {
+            loadCourses();
+            loadTeacherForms();
+        } else {
+            loadStudentCourses();
+            loadStudentForms();
+        }   
     }
 }
 
@@ -598,7 +596,70 @@ async function formatAttendanceResults(attendanceResults) {
     return attendanceDict;
 }
 
-async function displayStudentAttendance() {
+/***********************STUDENT CODE********************************/
+async function loadStudentCourses() {
+    const courseSelect = document.getElementById('courseSelect');
+    courseSelect.innerHTML = '<option value="" selected disabled hidden>Select a course</option>'; // Clear previous entries
+
+    const courses = await contract.methods.getAllCourses().call();
+
+    // Add courses to the dropdown
+    for (const course of courses) {
+        const option = document.createElement('option');
+        option.value = course;
+        option.text = course;
+        courseSelect.appendChild(option);
+    }
+}
+
+// Function to load forms for the student
+async function loadStudentForms() {
+	const formDetails = document.getElementById('formDetails');
+	const studentChecklist = document.getElementById('studentChecklist');
+	const submitFormButton = document.getElementById('submitFormButton');
+	formDetails.innerHTML = '';
+	studentChecklist.innerHTML = '';
+	submitFormButton.innerHTML = '';
+
+    const formSelect = document.getElementById('formSelect');
+    formSelect.innerHTML = '<option value="" selected disabled hidden>Select a form</option>'; // Clear previous entries
+
+    const forms = await contract.methods.getAttendanceFormsByStudent(currentAccount).call();
+
+    // Add forms to the dropdown
+    for (const form of forms) {
+        const option = document.createElement('option');
+        option.value = form.index.toString();
+        option.text = `${form.courseName} - ${new Date(form.courseDate * 1000).toLocaleString()}`;
+        formSelect.appendChild(option);
+    }
+}
+
+function generateStudentPage() {
+    const studentBody = document.getElementById('dashboardContainer');
+
+    // Add h1 and Current Wallet Address
+    studentBody.innerHTML += '<h1>Student Dashboard</h1>';
+    studentBody.innerHTML += '<div><p>Current Wallet Address: <span id="walletAddress"></span></p></div>';
+
+    // Add Select Course Section
+    studentBody.innerHTML += '<h2>View Attendance by Course</h2>';
+    studentBody.innerHTML += '<label for="courseSelect">Select Course:</label>';
+    studentBody.innerHTML += '<select id="courseSelect" onchange="displayStudentAttendances()"></select>';
+    studentBody.innerHTML += '<table id="attendanceTable"></table>';
+
+    // Add Select Form Section
+    studentBody.innerHTML += '<h2>Select Form to Answer</h2>';
+    studentBody.innerHTML += '<select id="formSelect" onchange="displayStudentForms()"></select>';
+
+    // Add Display Form Details Section
+    studentBody.innerHTML += '<h3>Form Details</h3>';
+    studentBody.innerHTML += '<div id="formDetails"></div>';
+    studentBody.innerHTML += '<div id="studentChecklist"></div>';
+    studentBody.innerHTML += '<div id="submitFormButton"></div>';
+}
+
+async function displayStudentAttendances() {
     const courseSelect = document.getElementById('courseSelect');
     const selectedCourse = courseSelect.value;
 
@@ -648,7 +709,7 @@ async function displayStudentAttendance() {
 }
 
 
-async function displayFormDetails() {
+async function displayStudentForms() {
     const formSelect = document.getElementById('formSelect');
     const selectedFormIndex = formSelect.value;
 
@@ -744,4 +805,213 @@ async function answerForm() {
 
     // Reload forms for the student after answering
 	reloadElements();
+}
+
+/***********************TEACHER CODE********************************/
+// Function to load teacher's forms into the dropdown
+async function loadTeacherForms() {
+    const teacherForms = await contract.methods.getAttendanceFormsByTeacher(currentAccount).call();
+    const formSelect = document.getElementById('formSelect');
+
+    // Clear previous options
+    formSelect.innerHTML = '<option value="" selected disabled hidden>Select a form</option>';
+
+    // Add new options
+    teacherForms.forEach((form) => {
+        const option = document.createElement('option');
+        option.value = form.index.toString();
+        option.text = `${form.courseName} - ${new Date(form.courseDate * 1000).toLocaleString()}`;
+        formSelect.add(option);
+    });
+
+    // Display details of the selected form
+    displayFormDetails();
+}
+
+// Function to load courses into the dropdown
+async function loadCourses(targetDropdownId) {
+    const courseSelect = document.getElementById('courseSelect1');
+    const courseSelect2 = document.getElementById('courseSelect2');
+
+    const courses = await contract.methods.getAllCourses().call();
+
+    // Clear previous entries
+    courseSelect.innerHTML = '<option value="" selected disabled hidden>Select a course</option>';
+    courseSelect2.innerHTML = '<option value="" selected disabled hidden>Select a course</option>';
+
+    // Add courses to both dropdowns
+    for (const course of courses) {
+        const option = document.createElement('option');
+        option.value = course;
+        option.text = course;
+
+        courseSelect.appendChild(option);
+        courseSelect2.appendChild(option.cloneNode(true));
+    }
+}
+
+// Example JavaScript function to add a course
+async function addCourse() {
+	// Get the course name from the input field
+	const courseName = document.getElementById('courseNameInput').value;
+
+	// Ensure the course name is not empty
+	if (!courseName) {
+		alert('Please enter a valid course name');
+		return;
+	}
+
+	// Call the smart contract function to add the course
+	await contract.methods.addCourse(courseName).send({ from: currentAccount });
+
+	// Reload the course list after adding a new course
+	reloadElements();
+}
+
+function generateTeacherPage() {
+    const teacherBody = document.getElementById('dashboardContainer');
+
+    // Add h1 and Current Wallet Address
+    teacherBody.innerHTML += '<h1>Teacher Dashboard</h1>';
+    teacherBody.innerHTML += '<div><p>Current Wallet Address: <span id="walletAddress"></span></p></div>';
+
+    // Add Add Course Section
+    teacherBody.innerHTML += '<h2>Add Course</h2>';
+    teacherBody.innerHTML += '<input type="text" id="courseNameInput" placeholder="Enter course name">';
+    teacherBody.innerHTML += '<button onclick="addCourse()">Add</button>';
+
+    // Add Create New Form Section
+    teacherBody.innerHTML += '<h2>Create New Form</h2>';
+    teacherBody.innerHTML += '<label for="courseSelect1">Course Name:</label>';
+    teacherBody.innerHTML += '<select id="courseSelect1"></select>';
+    teacherBody.innerHTML += '<label for="students">Students (comma-separated addresses):</label>';
+    teacherBody.innerHTML += '<input type="text" id="students" placeholder="Enter students\' addresses">';
+    teacherBody.innerHTML += '<button onclick="addForm()">Create Form</button>';
+
+    // Add View and Close Forms Section
+    teacherBody.innerHTML += '<h2>View and Close Forms</h2>';
+    teacherBody.innerHTML += '<select id="formSelect" onchange="displayFormDetails()"></select>';
+    teacherBody.innerHTML += '<button onclick="closeForm()">Close Form</button>';
+
+    // Add Display Form Details Section
+    teacherBody.innerHTML += '<h3>Form Details</h3>';
+    teacherBody.innerHTML += '<div id="formDetails"></div>';
+
+    // Add View Attendance by Course Section
+    teacherBody.innerHTML += '<h2>View Attendance by Course</h2>';
+    teacherBody.innerHTML += '<label for="courseSelect2">Select Course:</label>';
+    teacherBody.innerHTML += '<select id="courseSelect2" onchange="displayAttendanceByCourse()"></select>';
+    teacherBody.innerHTML += '<table id="attendanceTable"></table>';
+}
+
+// Function to display details of the selected form
+async function displayFormDetails() {
+    const formSelect = document.getElementById('formSelect');
+    const selectedIndex = formSelect.value;
+    const formDetailsDiv = document.getElementById('formDetails');
+    
+    if (selectedIndex) {
+        const teacherForms = await contract.methods.getAttendanceFormsByTeacher(currentAccount).call();
+        let selectedForm;
+
+		// Loop through the forms to find the one with the right index
+		for (const form of teacherForms) {
+			if (form.index.toString() === selectedIndex) {
+				selectedForm = form;
+				break;
+			}
+		}
+
+        // Display form details
+        formDetailsDiv.innerHTML = `
+            <p><strong>Course Name:</strong> ${selectedForm.courseName}</p>
+            <p><strong>Course Date:</strong> ${new Date(selectedForm.courseDate * 1000).toLocaleString()}</p>
+            <p><strong>Students:</strong> ${selectedForm.students.join(', ')}</p>
+        `;
+    } else {
+        formDetailsDiv.innerHTML = 'No form selected.'; // Clear details if no form is selected
+    }
+    
+}
+
+async function displayAttendanceByCourse() {
+    const courseSelect = document.getElementById('courseSelect2');
+    const selectedCourse = courseSelect.value;
+
+    const attendanceResults = await contract.methods.getAttendanceResultsByCourse(selectedCourse).call();
+
+	const attendanceTable = document.getElementById('attendanceTable');
+    attendanceTable.innerHTML = ''; // Clear previous table
+	if (!attendanceResults || attendanceResults.length === 0) {
+        attendanceTable.innerHTML = 'No attendance yet.';
+        return;
+    }
+    // Add border styling to the table
+    attendanceTable.style.border = '1px solid black';
+    attendanceTable.style.borderCollapse = 'collapse';
+
+    // Format attendance results
+    const formattedAttendance = await formatAttendanceResults(attendanceResults);
+	// Extract dates and students
+	const attendanceDates = Object.keys(formattedAttendance);
+	const allStudents = Array.from(new Set(Object.values(formattedAttendance).flatMap(date => Object.keys(date))));
+
+    // Create table headers
+    const headerRow = attendanceTable.insertRow();
+    const dateHeader = headerRow.insertCell(0);
+    dateHeader.innerHTML = '<b>Student</b>'; // Header for the first column
+
+    // Add dates to headers using attendanceDates
+	attendanceDates.forEach(date => {
+		const dateCell = headerRow.insertCell(headerRow.cells.length);
+		dateCell.innerHTML = `<b>${date}</b>`;
+		dateCell.style.border = '1px solid black';
+	});
+
+	// Iterate through students and populate attendance data
+	allStudents.forEach(student => {
+		const row = attendanceTable.insertRow();
+		const studentCell = row.insertCell(0);
+		studentCell.innerHTML = `<b>${student}</b>`;
+		studentCell.style.border = '1px solid black';
+
+		// Add student attendances for each date
+		attendanceDates.forEach(date => {
+			const attendanceCell = row.insertCell(row.cells.length);
+			const attendanceStatus = formattedAttendance[date][student];
+			attendanceCell.innerHTML = attendanceStatus !== undefined ? (attendanceStatus ? 'Present' : 'Absent') : 'N/A';
+			attendanceCell.style.border = '1px solid black';
+		});
+	});
+}
+
+// Function to create a new form
+async function addForm() {
+    const courseName = document.getElementById('courseSelect1').value;
+    const students = document.getElementById('students').value.split(',').map(addr => addr.trim());
+
+    if (!courseName || students.length === 0) {
+        alert('Please enter valid course name and students');
+        return;
+    }
+
+    await contract.methods.createAttendanceForm(courseName, students).send({ from: currentAccount, gas: 2000000 });
+
+    reloadElements();
+}
+
+// Function to close the selected form by calculating attendance result
+async function closeForm() {
+    const formSelect = document.getElementById('formSelect');
+    const selectedIndex = formSelect.value;
+
+    if (selectedIndex >= 0) {
+        const teacherForms = await contract.methods.getAttendanceFormsByTeacher(currentAccount).call();
+        const selectedForm = teacherForms[selectedIndex];
+
+        await contract.methods.calculateAttendanceResult(selectedIndex).send({ from: currentAccount, gas: 2000000 });
+
+        // Reload teacher's forms after closing the form
+        reloadElements();
+    }
 }
