@@ -495,7 +495,6 @@ const contractABI = [
 ];
 
 /*------------------------------------- CODE ----------------------------*/
-
 var contract = null;
 var accounts = null;
 var accountId = null;
@@ -512,7 +511,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         web3  = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8545/")); //for events
     }
-    // web3.eth.defaultAccount = "0x175B72d85c0AecfE5069397094B46D330d15A74A";
 
     contract = new web3.eth.Contract(contractABI, contractAddress);
 
