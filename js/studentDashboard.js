@@ -481,9 +481,12 @@ const contractABI = [
 
 var contract = null;
 var accounts = null;
+var accountId = null;
 var currentAccount = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+	getLoginInformation();
+
     // Connect to your smart contract
     // Initialize web3
     if (typeof web3 !== 'undefined') {
@@ -502,12 +505,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Display current wallet address
     document.getElementById('walletAddress').innerText = currentAccount;
     
-    // Load courses on page load
-    loadCourses();
-
-    // Load forms for the student
-    loadFormsForStudent();
+    reloadElements();
 });
+
+document.addEventListener('visibilitychange', function() {
+	if (document.visibilityState === 'visible') {
+		reloadElements();
+	}
+});
+
+async function reloadElements() {
+	// Load courses on page load
+	loadCourses();
+
+	// Load forms for the student
+	loadFormsForStudent();
+}
 
 async function loadCourses() {
     const courseSelect = document.getElementById('courseSelect');
@@ -526,6 +539,13 @@ async function loadCourses() {
 
 // Function to load forms for the student
 async function loadFormsForStudent() {
+	const formDetails = document.getElementById('formDetails');
+	const studentChecklist = document.getElementById('studentChecklist');
+	const submitFormButton = document.getElementById('submitFormButton');
+	formDetails.innerHTML = '';
+	studentChecklist.innerHTML = '';
+	submitFormButton.innerHTML = '';
+
     const formSelect = document.getElementById('formSelect');
     formSelect.innerHTML = '<option value="" selected disabled hidden>Select a form</option>'; // Clear previous entries
 
@@ -538,6 +558,22 @@ async function loadFormsForStudent() {
         option.text = `${form.courseName} - ${new Date(form.courseDate * 1000).toLocaleString()}`;
         formSelect.appendChild(option);
     }
+}
+
+async function getLoginInformation() {
+	// Prompt the user for input
+	const userInput = prompt('Please enter your login (an integer):');
+
+	// Parse the input as an integer
+	accountId = parseInt(userInput);
+
+	// Check if the input is a valid integer
+	if (!isNaN(accountId) && Number.isInteger(accountId)) {
+		alert('Login successful! You entered: ' + accountId);
+	} else {
+		alert('Invalid input. Please enter a valid integer.');
+		location.reload();
+	}
 }
 
 async function formatAttendanceResults(attendanceResults) {
@@ -707,5 +743,5 @@ async function answerForm() {
     await contract.methods.answerAttendanceForm(selectedFormIndex, isPresent).send({ from: currentAccount, gas: 2000000 });
 
     // Reload forms for the student after answering
-	location.reload();
+	reloadElements();
 }

@@ -502,10 +502,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Display current wallet address
     document.getElementById('walletAddress').innerText = currentAccount;
     
-    // Load teacher's forms on page load
+    reloadElements();
+});
+
+document.addEventListener('visibilitychange', function() {
+	if (document.visibilityState === 'visible') {
+		reloadElements();
+	}
+});
+
+async function reloadElements() {
     loadTeacherForms();
 	loadCourses();
-});
+}
 
 // Example JavaScript function to add a course
 async function addCourse() {
@@ -522,7 +531,7 @@ async function addCourse() {
 	await contract.methods.addCourse(courseName).send({ from: currentAccount });
 
 	// Reload the course list after adding a new course
-	loadCourses();
+	reloadElements();
 }
 
 // Function to load courses into the dropdown
@@ -609,8 +618,7 @@ async function createNewForm() {
 
     await contract.methods.createAttendanceForm(courseName, students).send({ from: currentAccount, gas: 2000000 });
 
-    // Reload teacher's forms after creating a new one
-    loadTeacherForms();
+    reloadElements();
 }
 
 // Function to close the selected form by calculating attendance result
@@ -625,7 +633,7 @@ async function calculateAttendanceResult() {
         await contract.methods.calculateAttendanceResult(selectedIndex).send({ from: currentAccount, gas: 2000000 });
 
         // Reload teacher's forms after closing the form
-        loadTeacherForms();
+        reloadElements();
     }
 }
 
