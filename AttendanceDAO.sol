@@ -160,7 +160,7 @@ contract AttendanceDAO {
             }
 
             // Check if the student is present based on the majority rules
-            if (presentCount >= (numVotes * 51) / 100) {
+            if (numVotes > 0 && (presentCount * 100) / numVotes >= 51) {
                 newResult.finalResult[i] = true;
             } else {
                 newResult.finalResult[i] = false;

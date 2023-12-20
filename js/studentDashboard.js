@@ -1,5 +1,5 @@
 // Config contract information
-const contractAddress = "0xdA11A1A2eA57046443208870f159E7F6a4778614";
+const contractAddress = "0x9F890b4D5fcAbacB455e3aE110944aa25D773D14";
 const contractABI = [
 	{
 		"inputs": [],
@@ -540,56 +540,75 @@ async function loadFormsForStudent() {
     }
 }
 
+async function formatAttendanceResults(attendanceResults) {
+    const attendanceDict = {};
+
+    // Iterate through attendanceResults
+    attendanceResults.forEach(result => {
+        const courseDate = new Date(result.courseDate * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+
+        // If the date is not in the dictionary, add it
+        if (!attendanceDict[courseDate]) {
+            attendanceDict[courseDate] = {};
+        }
+
+        // Iterate through students
+        result.students.forEach(student => {
+            // Add the attendance for the current date
+            attendanceDict[courseDate][student] = result.finalResult[result.students.indexOf(student)];
+        });
+    });
+
+    return attendanceDict;
+}
+
 async function displayStudentAttendance() {
     const courseSelect = document.getElementById('courseSelect');
     const selectedCourse = courseSelect.value;
 
-    const studentAttendanceTable = document.getElementById('studentAttendanceTable');
-    studentAttendanceTable.innerHTML = ''; // Clear previous table
-
-    if (!selectedCourse) {
-        return;
-    }
-
     const attendanceResults = await contract.methods.getAttendanceResultsByCourse(selectedCourse).call();
-    const studentAddress = document.getElementById('walletAddress').textContent;
 
-    // Find the student's attendance in the selected course
-    const studentAttendance = attendanceResults.find(result =>
-        result.students.includes(studentAddress)
-    );
-
-    if (!studentAttendance) {
+	const attendanceTable = document.getElementById('attendanceTable');
+    attendanceTable.innerHTML = ''; // Clear previous table
+	if (!attendanceResults || attendanceResults.length === 0) {
+        attendanceTable.innerHTML = 'No attendance yet.';
         return;
     }
-
     // Add border styling to the table
-    studentAttendanceTable.style.borderCollapse = 'collapse';
+    attendanceTable.style.border = '1px solid black';
+    attendanceTable.style.borderCollapse = 'collapse';
+
+    // Format attendance results
+    const formattedAttendance = await formatAttendanceResults(attendanceResults);
+	// Extract dates and students
+	const attendanceDates = Object.keys(formattedAttendance);
+	const allStudents = Array.from(new Set(Object.values(formattedAttendance).flatMap(date => Object.keys(date))));
 
     // Create table headers
-    const headerRow = studentAttendanceTable.insertRow();
+    const headerRow = attendanceTable.insertRow();
     const dateHeader = headerRow.insertCell(0);
-    dateHeader.innerHTML = '<b>Date and Hour</b>';
-    dateHeader.style.border = '1px solid black'; // Border for header cell
+    dateHeader.innerHTML = '<b>Student</b>'; // Header for the first column
 
-    // Add student attendance
-    const studentIndex = studentAttendance.students.indexOf(studentAddress);
-    const studentAttendanceCell = headerRow.insertCell(1);
-    studentAttendanceCell.innerHTML = `<b>${studentAttendance.students[studentIndex]}</b>`;
-    studentAttendanceCell.style.border = '1px solid black'; // Border for header cell
+    // Add dates to headers using attendanceDates
+	attendanceDates.forEach(date => {
+		const dateCell = headerRow.insertCell(headerRow.cells.length);
+		dateCell.innerHTML = `<b>${date}</b>`;
+		dateCell.style.border = '1px solid black';
+	});
 
-    // Populate attendance data
-    studentAttendance.finalResult.forEach(result => {
-        const row = studentAttendanceTable.insertRow();
-        const dateCell = row.insertCell(0);
-        dateCell.innerHTML = `<b>${result.courseDate}</b>`;
-        dateCell.style.border = '1px solid black'; // Border for data cell
+	const student = currentAccount;
+	const row = attendanceTable.insertRow();
+	const studentCell = row.insertCell(0);
+	studentCell.innerHTML = `<b>${student}</b>`;
+	studentCell.style.border = '1px solid black';
 
-        // Add student attendance
-        const attendanceCell = row.insertCell(1);
-        attendanceCell.innerHTML = result.finalResult[studentIndex] ? 'Present' : 'Absent';
-        attendanceCell.style.border = '1px solid black'; // Border for data cell
-    });
+	// Add student attendances for each date
+	attendanceDates.forEach(date => {
+		const attendanceCell = row.insertCell(row.cells.length);
+		const attendanceStatus = formattedAttendance[date][student];
+		attendanceCell.innerHTML = attendanceStatus !== undefined ? (attendanceStatus ? 'Present' : 'Absent') : 'N/A';
+		attendanceCell.style.border = '1px solid black';
+	});
 }
 
 
