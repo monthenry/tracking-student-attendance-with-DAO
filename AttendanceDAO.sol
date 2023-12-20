@@ -149,7 +149,7 @@ contract AttendanceDAO {
             }
             
             // Count votes
-            uint256 presentCount;
+            uint256 presentCount = 0;
             for (uint256 j = 0; j < numStudents; j++) {
                 if (form.votes[j].length > 0) {
                     numVotes++;
