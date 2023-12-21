@@ -140,7 +140,6 @@ contract AttendanceDAO {
         });
 
         // Calculate final results
-        uint256 numVotes = 0;
         for (uint256 i = 0; i < numStudents; i++) {
             // Check if the student has voted, otherwise declared as absent
             if (form.votes[i].length <= 0) {
@@ -149,6 +148,7 @@ contract AttendanceDAO {
             }
             
             // Count votes
+            uint256 numVotes = 0;
             uint256 presentCount = 0;
             for (uint256 j = 0; j < numStudents; j++) {
                 if (form.votes[j].length > 0) {
