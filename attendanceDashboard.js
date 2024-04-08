@@ -1,10 +1,23 @@
 // Config contract information
-const contractAddress = "0x1a2744Df904Dcef4A6d8D09b2374370Cb8B92023";
+const contractAddress = "0xB7188dAc23488c8Ddc3B43CB53B496C99747560F";
 const contractABI = [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "accessControl",
+		"outputs": [
+			{
+				"internalType": "contract RoleBasedAccessControl",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -15,19 +28,6 @@ const contractABI = [
 			}
 		],
 		"name": "addCourse",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_teacher",
-				"type": "address"
-			}
-		],
-		"name": "addTeacher",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -455,38 +455,6 @@ const contractABI = [
 				"internalType": "bool",
 				"name": "",
 				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "teachers",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
 			}
 		],
 		"stateMutability": "view",

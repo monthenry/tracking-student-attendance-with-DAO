@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract AttendanceDAO {
-    // Owner of the contract
-    address public immutable owner;
+import "./RBAC.sol";
 
-    // List of teacher addresses
-    address[] public teachers;
+contract AttendanceDAO {
+    // Role based access control contract
+    RBAC public accessControl;
 
     // List of courses addresses
     string[] public courses;
@@ -45,32 +44,26 @@ contract AttendanceDAO {
 
     // Modifier to restrict access to the owner
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only the contract owner can perform this action");
+        require(msg.sender == accessControl.owner(), "Only the contract owner can perform this action");
         _;
     }
 
     // Modifier to restrict access to teachers
     modifier onlyTeachers() {
-        require(isTeacher(msg.sender), "Only teachers can perform this action");
+        require(accessControl.teachers(msg.sender), "Only teachers can perform this action");
         _;
     }
 
-    // Constructor to set the owner
+    // Constructor to set the owner and initialize role based access control
     constructor() {
         numForms = 0;
         numResults = 0;
-        owner = msg.sender;
-        addTeacher(msg.sender);
+        accessControl = new RBAC();
     }
 
     /*
-    ----------------------CODE TO TEST--------------------------------------------------------------
+    ----------------------CORE FUNCTIONS------------------------------------------------------------
     */
-
-    // Function to add a teacher address (can only be called by the owner)
-    function addTeacher(address _teacher) public onlyOwner {
-        teachers.push(_teacher);
-    }
 
     // Function to add a course (can only be called by teachers)
     function addCourse(string memory _course) public onlyTeachers {
@@ -106,7 +99,7 @@ contract AttendanceDAO {
             courseDate: block.timestamp,
             teacher: msg.sender,
             students: _students,
-            votes: new bool[][](_students.length) 
+            votes: new bool[][](_students.length)
         });
 
         // Add the form to the list of attendance forms
@@ -178,14 +171,8 @@ contract AttendanceDAO {
         return numResults - 1;
     }
 
-    // Helper function to check if an address is a teacher
     function isTeacher(address _address) public view returns (bool) {
-        for (uint256 i = 0; i < teachers.length; i++) {
-            if (_address == teachers[i]) {
-                return true;
-            }
-        }
-        return false;
+        return accessControl.teachers(_address);
     }
 
     // Helper function to check if an address is a student in a given list
