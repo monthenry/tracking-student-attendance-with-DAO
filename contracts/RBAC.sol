@@ -8,6 +8,10 @@ contract RBAC {
     // List of teacher addresses
     mapping(address => bool) public teachers;
 
+    // Events for tracking teacher addition/removal
+    event TeacherAdded(address indexed teacher);
+    event TeacherRemoved(address indexed teacher);
+
     // Constructor to set the owner
     constructor() {
         owner = msg.sender;
@@ -28,12 +32,15 @@ contract RBAC {
 
     // Function to add a teacher address (can only be called by the owner)
     function addTeacher(address _teacher) public onlyOwner {
+        require(!teachers[_teacher], "Address is already a teacher"); // Check if already a teacher
         teachers[_teacher] = true;
+        emit TeacherAdded(_teacher); // Emit event on addition
     }
 
     // Function to remove a teacher address (can only be called by the owner)
     function removeTeacher(address _teacher) public onlyOwner {
         require(_teacher != owner, "Owner cannot be removed as a teacher");
         teachers[_teacher] = false;
+        emit TeacherRemoved(_teacher); // Emit event on removal
     }
 }

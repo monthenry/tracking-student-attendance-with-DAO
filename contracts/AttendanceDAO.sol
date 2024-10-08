@@ -7,6 +7,9 @@ contract AttendanceDAO {
     // Role based access control contract
     RBAC public accessControl;
 
+    // Mapping for courses to improve efficiency
+    mapping(string => bool) public courseExistsMap;
+
     // List of courses addresses
     string[] public courses;
 
@@ -27,16 +30,21 @@ contract AttendanceDAO {
         uint256 courseDate; // Datetime at which the form was created
         address teacher;
         address[] students; // List of students for the form
-        bool[] finalResult; // List of lists containing booleans to store students' votes
+        bool[] finalResult; // List of booleans to store students' attendance status
     }
 
     // List to store attendance forms
-    uint numForms;
+    uint256 public numForms;
     AttendanceForm[] public attendanceForms;
 
     // List to store final attendance results
-    uint numResults;
+    uint256 public numResults;
     AttendanceResult[] public attendanceResults;
+
+    // Events for critical actions
+    event CourseAdded(string course);
+    event AttendanceFormCreated(uint256 indexed formIndex, string courseName);
+    event AttendanceResultCalculated(uint256 indexed resultIndex);
 
     /*
     ----------------------CONSTRUCTOR--------------------------------------------------------------
@@ -54,7 +62,7 @@ contract AttendanceDAO {
         _;
     }
 
-    // Constructor to set the owner and initialize role based access control
+    // Constructor to set the owner and initialize role-based access control
     constructor() {
         numForms = 0;
         numResults = 0;
@@ -67,23 +75,15 @@ contract AttendanceDAO {
 
     // Function to add a course (can only be called by teachers)
     function addCourse(string memory _course) public onlyTeachers {
-        require(!courseExists(_course));
+        require(!courseExistsMap[_course], "Course already exists");
         courses.push(_course);
+        courseExistsMap[_course] = true; // Mark the course as existing
+        emit CourseAdded(_course); // Emit event
     }
 
     // Function to get the list of all courses
     function getAllCourses() external view returns (string[] memory) {
         return courses;
-    }
-
-    // Helper function to check if a course name exists
-    function courseExists(string memory _courseName) internal view returns (bool) {
-        for (uint256 i = 0; i < courses.length; i++) {
-            if (keccak256(abi.encodePacked(courses[i])) == keccak256(abi.encodePacked(_courseName))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // Function for teachers to create and post an attendance form
@@ -108,7 +108,8 @@ contract AttendanceDAO {
         // Increment the number of forms
         numForms++;
 
-        return numForms-1;
+        emit AttendanceFormCreated(numForms - 1, _courseName); // Emit event
+        return numForms - 1;
     }
 
     // Function to calculate and store final attendance results
@@ -121,7 +122,7 @@ contract AttendanceDAO {
         uint256 numStudents = form.students.length;
 
         // Ensure the form can only be closed by the teacher opening it
-        require(msg.sender == form.teacher, "The form can only be closed by it's creator");
+        require(msg.sender == form.teacher, "The form can only be closed by its creator");
 
         // Create a new attendanceResult
         AttendanceResult memory newResult = AttendanceResult({
@@ -139,7 +140,7 @@ contract AttendanceDAO {
                 newResult.finalResult[i] = false;
                 continue;
             }
-            
+
             // Count votes
             uint256 numVotes = 0;
             uint256 presentCount = 0;
@@ -153,21 +154,18 @@ contract AttendanceDAO {
             }
 
             // Check if the student is present based on the majority rules
-            if (numVotes > 0 && (presentCount * 100) / numVotes >= 51) {
-                newResult.finalResult[i] = true;
-            } else {
-                newResult.finalResult[i] = false;
-            }
+            newResult.finalResult[i] = (numVotes > 0 && (presentCount * 100) / numVotes >= 51);
         }
 
         // Add the form to the list of result forms
         attendanceResults.push(newResult);
-        // Increment the number of forms
+        // Increment the number of results
         numResults++;
 
         // Delete the form from the list
         form.isActive = false;
 
+        emit AttendanceResultCalculated(numResults - 1); // Emit event
         return numResults - 1;
     }
 
@@ -276,34 +274,27 @@ contract AttendanceDAO {
     }
 
     // Function to get attendance results by course
-    function getAttendanceResultsByCourse(string memory _courseName) external view returns (AttendanceResult[] memory) {
-        uint256 totalResults;
+    function getAttendanceResultsByCourse(string memory _course) external view returns (AttendanceResult[] memory) {
+        AttendanceResult[] memory courseResults = new AttendanceResult[](numResults);
+
+        uint256 count = 0;
         for (uint256 i = 0; i < numResults; i++) {
-            if (keccak256(abi.encodePacked(attendanceResults[i].courseName)) == keccak256(abi.encodePacked(_courseName))) {
-                totalResults++;
+            if (keccak256(abi.encodePacked(attendanceResults[i].courseName)) == keccak256(abi.encodePacked(_course))) {
+                // Course matches, add the result to the result array
+                courseResults[count] = attendanceResults[i];
+                count++;
             }
         }
 
-        AttendanceResult[] memory resultsByCourse = new AttendanceResult[](totalResults);
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < numResults; i++) {
-            if (keccak256(abi.encodePacked(attendanceResults[i].courseName)) == keccak256(abi.encodePacked(_courseName))) {
-                resultsByCourse[currentIndex] = attendanceResults[i];
-                currentIndex++;
-            }
+        // Resize the memory array to fit only the relevant results
+        assembly {
+            mstore(courseResults, count)
         }
 
-        return resultsByCourse;
+        return courseResults;
     }
 
-
-    // Function to display all attendance forms
-    function getAllAttendanceForms() external view returns (AttendanceForm[] memory) {
-        return attendanceForms;
-    }
-
-    // Function to display all attendance results
+    // Function to get all attendance results
     function getAllAttendanceResults() external view returns (AttendanceResult[] memory) {
         return attendanceResults;
     }
